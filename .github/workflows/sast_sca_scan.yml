@@ -30,7 +30,7 @@ jobs:
       - name: Run SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.sast }}
         with:
           args: >
             -Dsonar.organization=pandelig-1
@@ -40,7 +40,7 @@ jobs:
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@v1
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.sast  }}
 
       - name: Run pip-audit
         # This step will run even if the previous SonarQube Quality Gate check step fails
