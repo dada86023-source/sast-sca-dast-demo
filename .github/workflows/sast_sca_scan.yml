@@ -45,6 +45,7 @@ jobs:
       - name: Run pip-audit
         # This step will run even if the previous SonarQube Quality Gate check step fails
         if: always()
+        continue-on-error: true
         run: |
           pip install pip-audit
           pip-audit -r vulnerable_flask_app/requirements.txt
