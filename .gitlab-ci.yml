@@ -39,14 +39,13 @@ dast:
     - |
       docker run --rm \
         --network zap-network \
-        -v "$CI_PROJECT_DIR/zap_reports:/zap/wrk/:rw" \
         ghcr.io/zaproxy/zaproxy:stable \
         zap-full-scan.py \
         -t http://flask-app-container:5000 \
         -I -j \
-        -r report.html \
-        -J report.json \
-        -x report.xml \
+        -r /tmp/report.html \
+        -J /tmp/report.json \
+        -x /tmp/report.xml \
         -a
   artifacts:
     when: always
