@@ -33,10 +33,21 @@ dast:
     DOCKER_HOST: "unix:///var/run/docker.sock"
   script:
     - docker info
+    - docker network inspect zap-network
+    - docker inspect flask-app-container
     - mkdir -p zap_reports
-    - docker run --name zap-scan-$CI_JOB_ID --network zap-network -v "$CI_PROJECT_DIR/zap_reports:/zap/wrk/:rw" ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://flask-app-container:5000 -I -j -r report.html -J report.json -x report.xml -a
-  after_script:
-    - docker rm -f zap-scan-$CI_JOB_ID || true
+    - |
+      docker run --rm \
+        --network zap-network \
+        -v "$CI_PROJECT_DIR/zap_reports:/zap/wrk/:rw" \
+        ghcr.io/zaproxy/zaproxy:stable \
+        zap-full-scan.py \
+        -t http://flask-app-container:5000 \
+        -I -j \
+        -r report.html \
+        -J report.json \
+        -x report.xml \
+        -a
   artifacts:
     when: always
     paths:
