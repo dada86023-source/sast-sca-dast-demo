@@ -1,6 +1,7 @@
 
 stages:
   - security
+  - dast
 
 sast:
   stage: security
@@ -24,3 +25,20 @@ sca:
     - python -m pip install --disable-pip-version-check pip-audit
     - pip-audit -r vulnerable_flask_app/requirements.txt
   allow_failure: true
+
+dast:
+  stage: dast
+  image: docker:cli
+  variables:
+    DOCKER_HOST: "unix:///var/run/docker.sock"
+  script:
+    - docker info
+    - mkdir -p zap_reports
+    - docker run --name zap-scan-$CI_JOB_ID --network zap-network -v "$CI_PROJECT_DIR/zap_reports:/zap/wrk/:rw" ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://flask-app-container:5000 -I -j -r report.html -J report.json -x report.xml -a
+  after_script:
+    - docker rm -f zap-scan-$CI_JOB_ID || true
+  artifacts:
+    when: always
+    paths:
+      - zap_reports/
+    expire_in: 5 days
