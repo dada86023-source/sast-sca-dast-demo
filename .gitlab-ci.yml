@@ -31,7 +31,6 @@ sca:
     - python -m pip install --disable-pip-version-check pip-audit
     - pip-audit -r vulnerable_flask_app/requirements.txt
   allow_failure: true
-
 dast:
   stage: dast
   image: docker:cli
@@ -42,6 +41,7 @@ dast:
     - docker network inspect zap-network
     - docker inspect flask-app-container
     - mkdir -p zap_reports
+    - chmod -R 777 zap_reports
     - |
       docker run --rm \
         --network zap-network \
