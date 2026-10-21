@@ -1,8 +1,6 @@
-
 stages:
   - security
   - dast
-
 
 sast:
   stage: security
@@ -23,7 +21,6 @@ sast:
       -Dsonar.host.url=${SONAR_HOST_URL}
       -Dsonar.token=${SONAR_TOKEN}
 
-
 sca:
   stage: security
   image: python:3.12-slim
@@ -31,6 +28,7 @@ sca:
     - python -m pip install --disable-pip-version-check pip-audit
     - pip-audit -r vulnerable_flask_app/requirements.txt
   allow_failure: true
+
 dast:
   stage: dast
   image: docker:cli
@@ -41,11 +39,13 @@ dast:
     - docker network inspect zap-network
     - docker inspect flask-app-container
     - mkdir -p zap_reports
-    - chmod -R 777 zap_reports
+    - docker volume create zap-work
     - |
+      ZAP_EXIT=0
+
       docker run --rm \
         --network zap-network \
-        -v "$CI_PROJECT_DIR/zap_reports:/zap/wrk:rw" \
+        -v zap-work:/zap/wrk \
         ghcr.io/zaproxy/zaproxy:stable \
         zap-full-scan.py \
         -t http://flask-app-container:5000 \
@@ -53,9 +53,19 @@ dast:
         -r /zap/wrk/report.html \
         -J /zap/wrk/report.json \
         -x /zap/wrk/report.xml \
-        -a
+        -a || ZAP_EXIT=$?
+
+      docker run --rm \
+        -v zap-work:/source:ro \
+        -v "$CI_PROJECT_DIR/zap_reports:/dest" \
+        alpine:latest \
+        sh -c 'cp /source/report.html /dest/ 2>/dev/null; cp /source/report.json /dest/ 2>/dev/null; cp /source/report.xml /dest/ 2>/dev/null; true'
+
+      exit "$ZAP_EXIT"
   artifacts:
     when: always
     paths:
       - zap_reports/
     expire_in: 5 days
+
+
