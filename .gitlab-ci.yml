@@ -3,6 +3,7 @@ stages:
   - security
   - dast
 
+
 sast:
   stage: security
   image:
@@ -11,12 +12,17 @@ sast:
   variables:
     GIT_DEPTH: "0"
   script:
+    - echo "Checking DNS resolution..."
+    - getent hosts api.sonarcloud.io
+    - echo "Running SonarCloud analysis..."
     - >-
       sonar-scanner
-      -Dsonar.projectKey=flask-app
+      -Dsonar.projectKey=flask-app123_flask-app
+      -Dsonar.organization=flask-app123
       -Dsonar.sources=vulnerable_flask_app
       -Dsonar.host.url=${SONAR_HOST_URL}
       -Dsonar.token=${SONAR_TOKEN}
+
 
 sca:
   stage: security
@@ -39,13 +45,14 @@ dast:
     - |
       docker run --rm \
         --network zap-network \
+        -v "$CI_PROJECT_DIR/zap_reports:/zap/wrk:rw" \
         ghcr.io/zaproxy/zaproxy:stable \
         zap-full-scan.py \
         -t http://flask-app-container:5000 \
         -I -j \
-        -r /tmp/report.html \
-        -J /tmp/report.json \
-        -x /tmp/report.xml \
+        -r /zap/wrk/report.html \
+        -J /zap/wrk/report.json \
+        -x /zap/wrk/report.xml \
         -a
   artifacts:
     when: always
