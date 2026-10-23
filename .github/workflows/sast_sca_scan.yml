@@ -33,8 +33,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.sast }}
         with:
           args: >
-            -Dsonar.organization=pandelig-1
-            -Dsonar.projectKey=pandelig_sast-sca-dast-ports-demo
+            -Dsonar.organization=flask-app123
+            -Dsonar.projectKey=flask-app123_flask-app
             -Dsonar.sources=vulnerable_flask_app
 
       - name: SonarQube Quality Gate check
