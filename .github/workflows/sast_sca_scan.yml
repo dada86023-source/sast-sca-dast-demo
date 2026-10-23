@@ -1,13 +1,15 @@
-
 name: SAST & SCA Scan
 
 on:
   push:
     branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 jobs:
   sast_sca_checks:
+    name: SAST and SCA
     runs-on: ubuntu-latest
 
     steps:
@@ -22,33 +24,29 @@ jobs:
           python-version: '3.9'
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r vulnerable_flask_app/requirements.txt
 
-      - name: Run SonarQube Scan
+      # SAST: Static Application Security Testing
+      - name: Run SonarQube Cloud Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
-          SONAR_TOKEN: ${{ secrets.sast }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
             -Dsonar.organization=flask-app123
-            -Dsonar.projectKey=flask-app123_flask-app
+            -Dsonar.projectKey=flask-app123_flask-app1
             -Dsonar.sources=vulnerable_flask_app
             -Dsonar.scanner.skipJreProvisioning=true
 
-      - name: SonarQube Quality Gate check
-        if: always()
-        uses: sonarsource/sonarqube-quality-gate-action@v1
-        env:
-          SONAR_TOKEN: ${{ secrets.sast }}
-
+      # SCA: Software Composition Analysis
       - name: Run pip-audit
         if: always()
         continue-on-error: true
