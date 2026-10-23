@@ -40,7 +40,7 @@ jobs:
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@v1
         env:
-          SONAR_TOKEN: ${{ secrets.sast  }}
+          SONAR_TOKEN: ${{ secrets.sast }}
 
       - name: Run pip-audit
         # This step will run even if the previous SonarQube Quality Gate check step fails
